@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador de grupo UNIP ADS</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Script de Inicialização do Tema -->
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 min-h-screen flex flex-col font-sans selection:bg-brand-200 dark:selection:bg-brand-900 transition-colors duration-200">
+
+    <!-- Cabeçalho -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-10 transition-colors duration-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="bg-brand-600 dark:bg-brand-500 text-white p-1.5 sm:p-2 rounded-lg shadow-sm">
+                    <i class="fa-solid fa-users-rays text-lg sm:text-xl"></i>
+                </div>
+                <h1 class="font-bold text-base sm:text-xl text-slate-900 dark:text-white tracking-tight leading-tight">Sorteador de grupo UNIP ADS</h1>
+            </div>
+            
+            <!-- Botão Alternar Tema -->
+            <button onclick="toggleTheme()" class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:outline-none" aria-label="Alternar tema">
+                <i id="theme-icon" class="fa-solid fa-moon text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Painel de Configuração -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors duration-200">
+                    <h2 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-brand-500 dark:text-brand-400"></i> Dados do Sorteio
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="nomes" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pessoas sem grupo (um por linha)</label>
+                            <textarea id="nomes" rows="5" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow resize-none shadow-sm text-sm" placeholder="João Silva&#10;Maria Santos&#10;Pedro Costa..."></textarea>
+                        </div>
+
+                        <div>
+                            <label for="gruposPre" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grupos pré-formados (Opcional)</label>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">Um grupo por linha, nomes separados por vírgula.</p>
+                            <textarea id="gruposPre" rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow resize-none shadow-sm text-sm" placeholder="Ana, Carlos, Beatriz&#10;Lucas, Marcos"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="modoDivisao" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Dividir por</label>
+                                <select id="modoDivisao" onchange="atualizarLabelInput()" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow shadow-sm text-sm">
+                                    <option value="grupos">Nº de Grupos</option>
+                                    <option value="pessoas">Qtd. de Pessoas</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label id="labelValor" for="valorDivisao" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número de Grupos</label>
+                                <input type="number" id="valorDivisao" min="1" value="2" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-shadow shadow-sm text-sm">
+                            </div>
+                        </div>
+
+                        <button onclick="realizarSorteio()" class="w-full bg-brand-600 dark:bg-brand-500 hover:bg-brand-700 dark:hover:bg-brand-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-shuffle"></i> Sortear Grupos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel de Resultados -->
+            <div class="lg:col-span-2">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 min-h-full transition-colors duration-200">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-people-group text-brand-500 dark:text-brand-400"></i> Resultados
+                        </h2>
+                        <div class="flex items-center gap-3">
+                            <button id="btn-exportar" onclick="exportarParaTXT()" class="hidden bg-slate-800 dark:bg-slate-600 hover:bg-slate-700 dark:hover:bg-slate-500 text-white text-sm font-medium py-1.5 px-3 rounded-lg shadow-sm transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-file-export"></i> Exportar TXT
+                            </button>
+                            <span id="contador-pessoas" class="text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full transition-colors duration-200">0 pessoas</span>
+                        </div>
+                    </div>
+                    
+                    <div id="resultados" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Estado Vazio -->
+                        <div class="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500 text-center">
+                            <i class="fa-solid fa-box-open text-4xl mb-3 opacity-50"></i>
+                            <p>Os grupos sorteados aparecerão aqui.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer com Direitos Autorais -->
+    <footer class="bg-slate-900 text-slate-400 py-6 mt-auto w-full border-t border-slate-800 dark:border-slate-950">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <p class="text-sm font-medium tracking-wide">
+                &copy; 2026 | All rights reserved: Gabriel Sauer
+            </p>
+        </div>
+    </footer>
+
+    <!-- Modal de Mensagem (Substitui o alert padrão) -->
+    <div id="message-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="fecharModal()"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-2xl max-w-sm w-full relative transform transition-all z-10 border border-slate-100 dark:border-slate-700">
+                <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-500 dark:text-orange-400 flex items-center justify-center mb-4 mx-auto">
+                    <i class="fa-solid fa-circle-exclamation text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-center text-slate-900 dark:text-white mb-2">Atenção</h3>
+                <p id="modal-text" class="text-slate-600 dark:text-slate-300 text-center mb-6 text-sm"></p>
+                <button onclick="fecharModal()" class="w-full bg-slate-900 dark:bg-slate-700 text-white font-medium py-2.5 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-600 transition-colors">
+                    Entendi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Lógica do Sorteio -->
+    <script>
+        let gruposSorteadosParaExportacao = [];
+
+        // Inicializar ícone correto
+        document.addEventListener('DOMContentLoaded', () => {
+            atualizarIconeTema();
+        });
+
+        function atualizarIconeTema() {
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            atualizarIconeTema();
+        }
+
+        function atualizarLabelInput() {
+            const modo = document.getElementById('modoDivisao').value;
+            const label = document.getElementById('labelValor');
+            const input = document.getElementById('valorDivisao');
+            
+            if (modo === 'grupos') {
+                label.innerText = 'Número de Grupos';
+                input.max = "";
+            } else {
+                label.innerText = 'Pessoas por Grupo';
+                input.max = "7";
+                if(input.value > 7) input.value = 7;
+            }
+        }
+
+        function mostrarModal(mensagem) {
+            document.getElementById('modal-text').innerText = mensagem;
+            document.getElementById('message-modal').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('message-modal').classList.add('hidden');
+        }
+
+        function realizarSorteio() {
+            const textareaNomes = document.getElementById('nomes').value;
+            const textareaPre = document.getElementById('gruposPre').value;
+            
+            // Pega os nomes avulsos
+            let nomesAvulsos = textareaNomes.split('\n').map(n => n.trim()).filter(n => n !== '');
+            
+            // Pega os grupos pré-formados
+            let gruposPre = [];
+            if (textareaPre.trim() !== '') {
+                const linhasPre = textareaPre.split('\n').map(l => l.trim()).filter(l => l !== '');
+                linhasPre.forEach(linha => {
+                    const membros = linha.split(',').map(n => n.trim()).filter(n => n !== '');
+                    if (membros.length > 0) {
+                        gruposPre.push(membros);
+                    }
+                });
+            }
+
+            const modoDivisao = document.getElementById('modoDivisao').value;
+            const valorDivisao = parseInt(document.getElementById('valorDivisao').value);
+            const totalPessoas = nomesAvulsos.length + gruposPre.flat().length;
+
+            // Validações
+            if (totalPessoas === 0) {
+                mostrarModal('Por favor, insira pelo menos um nome na lista ou um grupo pré-formado.');
+                return;
+            }
+            if (isNaN(valorDivisao) || valorDivisao < 1) {
+                mostrarModal('Por favor, insira um valor numérico válido (mínimo 1).');
+                return;
+            }
+
+            let numGrupos;
+            if (modoDivisao === 'pessoas') {
+                if (valorDivisao > 7) {
+                    mostrarModal('Atenção: O limite máximo é de 7 pessoas por grupo.');
+                    return;
+                }
+                
+                // Verifica se algum grupo pré-formado excede o limite
+                const grupoExcedente = gruposPre.find(g => g.length > valorDivisao);
+                if (grupoExcedente) {
+                    mostrarModal(`Um dos grupos pré-formados tem ${grupoExcedente.length} pessoas, o que ultrapassa o limite de ${valorDivisao} pessoas por grupo.`);
+                    return;
+                }
+
+                if (valorDivisao > totalPessoas) {
+                    mostrarModal('A quantidade de pessoas por grupo não pode ser maior que o total de pessoas.');
+                    return;
+                }
+                // Calcula o número de grupos necessários
+                numGrupos = Math.ceil(totalPessoas / valorDivisao);
+            } else {
+                if (valorDivisao > totalPessoas) {
+                    mostrarModal('O número de grupos não pode ser maior que o número total de pessoas.');
+                    return;
+                }
+                numGrupos = valorDivisao;
+            }
+
+            if (gruposPre.length > numGrupos) {
+                mostrarModal(`Você inseriu ${gruposPre.length} grupos pré-formados, mas a configuração resultou em apenas ${numGrupos} grupo(s). Ajuste os valores.`);
+                return;
+            }
+
+            // Atualiza contador
+            document.getElementById('contador-pessoas').innerText = `${totalPessoas} pessoa(s)`;
+
+            // Algoritmo de Fisher-Yates para embaralhar os nomes avulsos
+            const nomesEmbaralhados = [...nomesAvulsos];
+            for (let i = nomesEmbaralhados.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [nomesEmbaralhados[i], nomesEmbaralhados[j]] = [nomesEmbaralhados[j], nomesEmbaralhados[i]];
+            }
+
+            // Cria os arrays para cada grupo e insere os pré-formados primeiro
+            const grupos = Array.from({ length: numGrupos }, () => []);
+            gruposPre.forEach((grupo, index) => {
+                grupos[index] = [...grupo];
+            });
+
+            // Distribui as pessoas avulsas preenchendo os grupos com menos membros
+            const limite = modoDivisao === 'pessoas' ? valorDivisao : Infinity;
+            
+            nomesEmbaralhados.forEach(nome => {
+                let menorTamanho = Infinity;
+                let indexAlvo = 0;
+                
+                // Encontra o grupo com menos pessoas que ainda não atingiu o limite
+                for (let i = 0; i < numGrupos; i++) {
+                    if (grupos[i].length < menorTamanho && grupos[i].length < limite) {
+                        menorTamanho = grupos[i].length;
+                        indexAlvo = i;
+                    }
+                }
+                
+                // Prevenção de falha (caso extremo)
+                if (menorTamanho === Infinity) indexAlvo = 0; 
+                
+                grupos[indexAlvo].push(nome);
+            });
+
+            // Salva os grupos para exportação e exibe o botão
+            gruposSorteadosParaExportacao = grupos;
+            document.getElementById('btn-exportar').classList.remove('hidden');
+
+            // Renderiza na tela
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = ''; // Limpa resultados anteriores
+
+            grupos.forEach((grupo, index) => {
+                const grupoElement = document.createElement('div');
+                grupoElement.className = 'bg-brand-50 border border-brand-100 dark:bg-slate-700/50 dark:border-slate-600 p-4 rounded-xl shadow-sm transition-colors duration-200';
+                
+                // Cabeçalho do grupo
+                const titulo = document.createElement('h3');
+                titulo.className = 'font-bold text-brand-700 dark:text-brand-300 border-b border-brand-200 dark:border-slate-500 pb-2 mb-3 flex justify-between items-center';
+                titulo.innerHTML = `<span>Grupo ${index + 1}</span> <span class="text-xs bg-brand-200 text-brand-800 dark:bg-slate-800 dark:text-brand-300 px-2 py-0.5 rounded-full">${grupo.length}</span>`;
+                grupoElement.appendChild(titulo);
+
+                // Lista de membros
+                const lista = document.createElement('ul');
+                lista.className = 'space-y-1.5';
+                grupo.forEach(membro => {
+                    const item = document.createElement('li');
+                    item.className = 'text-sm text-slate-700 dark:text-slate-300 flex items-center gap-2';
+                    item.innerHTML = `<i class="fa-solid fa-user text-brand-400 dark:text-brand-500 text-xs"></i> ${membro}`;
+                    lista.appendChild(item);
+                });
+
+                grupoElement.appendChild(lista);
+                resultadosDiv.appendChild(grupoElement);
+            });
+        }
+
+        function exportarParaTXT() {
+            if (gruposSorteadosParaExportacao.length === 0) return;
+
+            let texto = "=== RESULTADO DO SORTEIO DE GRUPOS - UNIP ADS ===\r\n";
+            texto += "Data: " + new Date().toLocaleString('pt-BR') + "\r\n";
+            texto += "Total de pessoas: " + gruposSorteadosParaExportacao.flat().length + "\r\n";
+            texto += "--------------------------------------------------\r\n\r\n";
+
+            gruposSorteadosParaExportacao.forEach((grupo, index) => {
+                texto += `[ GRUPO ${index + 1} - ${grupo.length} pessoas ]\r\n`;
+                grupo.forEach(membro => {
+                    texto += ` • ${membro}\r\n`;
+                });
+                texto += "\r\n";
+            });
+
+            texto += "--------------------------------------------------\r\n";
+            texto += "Gerado por: Sorteador de grupo UNIP ADS\r\n";
+            texto += "© 2026 | All rights reserved: Gabriel Sauer\r\n";
+
+            const blob = new Blob([texto], { type: "text/plain;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "Grupos_Sorteados_UNIP.txt";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
